@@ -20,7 +20,11 @@ export const config = {
   },
 };
 
-const relevantEvents = new Set(["checkout.session.completed"]);
+const relevantEvents = new Set([
+  "checkout.session.completed",
+  "customer.subscription.updated",
+  "customer.subscription.deleted",
+]);
 
 export default async (request: NextApiRequest, response: NextApiResponse) => {
   if (request.method === "POST") {
@@ -51,7 +55,19 @@ export default async (request: NextApiRequest, response: NextApiResponse) => {
 
             await saveSubscription(
               checkoutSession.subscription.toString(),
-              checkoutSession.customer.toString()
+              checkoutSession.customer.toString(),
+              true
+            );
+
+            break;
+          case "customer.subscription.updated":
+          case "customer.subscription.deleted":
+            const subscription = event.data.object as Stripe.Subscription;
+
+            await saveSubscription(
+              subscription.id,
+              subscription.customer.toString(),
+              false
             );
 
             break;
@@ -65,7 +81,6 @@ export default async (request: NextApiRequest, response: NextApiResponse) => {
 
     response.status(200).json({ received: true });
   } else {
-    console.log("Entrou no else");
     response.setHeader("Allow", "POST");
     response.status(405).end("Method not allowed");
   }
