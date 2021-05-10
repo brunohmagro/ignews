@@ -22,7 +22,7 @@ export default NextAuth({
           query.Get(
             query.Intersection([
               query.Match(
-                query.Index("sibscription_by_user_ref"),
+                query.Index("subscription_by_user_ref"),
                 query.Select(
                   "ref",
                   query.Get(
